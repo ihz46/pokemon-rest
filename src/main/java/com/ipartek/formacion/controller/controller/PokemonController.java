@@ -128,7 +128,37 @@ public class PokemonController extends HttpServlet {
 	 * @see HttpServlet#doDelete(HttpServletRequest, HttpServletResponse)
 	 */
 	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
+		
+		Object responseBody = null;
+		String pathinfo = request.getPathInfo();
+		int statusCode = HttpServletResponse.SC_OK;
+		
+		try {
+			int id = Integer.parseInt(pathinfo.split("/")[1]);
+			responseBody = dao.delete(id);
+			
+		} catch (Exception e) {
+			LOG.error(e);
+			responseBody = "No se ha podido eliminar el producto";
+			statusCode = HttpServletResponse.SC_NOT_FOUND;
+		}
+		
+
+		try( PrintWriter out = response.getWriter() ){
+			
+			if ( responseBody != null ) {
+				Gson json = new Gson();
+				out.print( json.toJson(responseBody) );
+				out.flush();
+			}	
+			
+		}catch (Exception e) {
+			LOG.error(e);
+			responseBody = "No se ha podido eliminar el pokemon ";
+			statusCode = HttpServletResponse.SC_NOT_FOUND;
+			
+		}
+						
 	}
 
 }

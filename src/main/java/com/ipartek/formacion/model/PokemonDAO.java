@@ -122,16 +122,17 @@ public class PokemonDAO implements IDAO<Pokemon> {
 	
 	@Override
 	public Pokemon delete(int id) throws Exception {
-		Pokemon p = getById(id);
+		Pokemon p =  getById(id);
 		
 		String sql = "DELETE FROM pokemon WHERE id=?";
 		try(Connection con = ConnectionManager.getConnection();PreparedStatement pst = con.prepareStatement(sql);){
 			pst.setInt(1, id);
-			
+			LOG.debug(pst);
 			int affectedRows = pst.executeUpdate();
 			if (affectedRows == 0) {
 				throw new Exception("No existe ningún pokemon con el id" + id);
 			}
+			
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
