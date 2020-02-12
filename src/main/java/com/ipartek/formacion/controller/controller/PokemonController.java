@@ -10,6 +10,9 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 
 import org.apache.log4j.Logger;
 
@@ -26,6 +29,7 @@ public class PokemonController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOG = Logger.getLogger(PokemonController.class);
     private static PokemonDAO dao;   
+ 
   
 
 	/**
@@ -34,6 +38,7 @@ public class PokemonController extends HttpServlet {
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		dao = PokemonDAO.getInstance();
+		
 	}
 
 	/**
@@ -50,7 +55,8 @@ public class PokemonController extends HttpServlet {
 
 		response.setContentType("application/json");
 		response.setCharacterEncoding("utf-8");
-		
+		 response.setHeader("Access-Control-Allow-Origin", "*");
+	      response.setHeader("Access-Control-Allow-Methods", "GET,HEAD,POST,DELETE,PUT");
 		super.service(request, response);
 		
 		

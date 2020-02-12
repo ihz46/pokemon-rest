@@ -17,6 +17,28 @@ public class PokemonDAO implements IDAO<Pokemon> {
 
 	private static PokemonDAO INSTANCE;
 	private static final Logger LOG = Logger.getLogger(PokemonDAO.class);
+	
+	//Consultas
+	
+	//GETALL
+	private static final String SQL_GET_ALL = "SELECT p.id 'id_pokemon', p.nombre 'nombre_pokemon', p.imagen, h.nombre 'nombre_habilidad', h.id 'id_habilidad' FROM pokemon p, pokemon_has_habilidades ph, habilidad h WHERE p.id = ph.id_pokemon AND ph.id_habilidad = h.id  ORDER BY p.id DESC LIMIT 500;";
+	
+	//GETBYID
+	private static final String SQL_GET_BY_ID = " SELECT p.id 'id_pokemon', p.nombre 'nombre_pokemon', h.nombre 'nombre_habilidad', h.id 'id_habilidad' FROM pokemon p, pokemon_has_habilidades ph, habilidad h  WHERE p.id = ph.id_pokemon AND ph.id_habilidad = h.id AND p.id = ?  ORDER BY p.id DESC LIMIT 500;";;
+	
+	//GETBYNOMBRE
+	private static final String SQL_GET_BY_NOMBRE = "SELECT p.id 'id_pokemon', p.nombre 'nombre_pokemon', h.nombre 'nombre_habilidad', h.id 'id_habilidad' FROM pokemon p, pokemon_has_habilidades ph, habilidad h  WHERE p.id = ph.id_pokemon AND ph.id_habilidad = h.id AND p.nombre LIKE ? ORDER BY p.id DESC LIMIT 500;";
+	
+	//CREATE
+	private static final String SQL_CREATE = "";
+	
+	//UPDATE
+	private static final String SQL_UPDATE = "";
+	
+	//DELETE
+	private static final String SQL_DELETE = "DELETE FROM pokemon WHERE id=?";
+	
+	
 
 	private PokemonDAO() {
 		super();
@@ -32,16 +54,10 @@ public class PokemonDAO implements IDAO<Pokemon> {
 	@Override
 	public List<Pokemon> getAll() {
 
-		String sql = " SELECT p.id 'id_pokemon', p.nombre 'nombre_pokemon', h.nombre 'nombre_habilidad', h.id 'id_habilidad' "
-				+ " FROM pokemon p, pokemon_has_habilidades ph, habilidad h "
-				+ " WHERE p.id = ph.id_pokemon AND ph.id_habilidad = h.id " + " ORDER BY p.id DESC LIMIT 500;";
-
-		LOG.debug(sql);
-
 		HashMap<Integer, Pokemon> hm = new HashMap<Integer, Pokemon>();
 
 		try (Connection con = ConnectionManager.getConnection();
-				PreparedStatement pst = con.prepareStatement(sql);
+				PreparedStatement pst = con.prepareStatement(SQL_GET_ALL);
 				ResultSet rs = pst.executeQuery()) {
 
 			while (rs.next()) {
@@ -59,17 +75,11 @@ public class PokemonDAO implements IDAO<Pokemon> {
 
 	@Override
 	public Pokemon getById(int id) {
-		String sql = " SELECT p.id 'id_pokemon', p.nombre 'nombre_pokemon', h.nombre 'nombre_habilidad', h.id 'id_habilidad' "
-				+ " FROM pokemon p, pokemon_has_habilidades ph, habilidad h "
-				+ " WHERE p.id = ph.id_pokemon AND ph.id_habilidad = h.id AND p.id = ? "
-				+ " ORDER BY p.id DESC LIMIT 500;";
-
-		LOG.debug(sql);
-
+	
 		HashMap<Integer, Pokemon> hm = new HashMap<Integer, Pokemon>();
 		Pokemon p = null;
 
-		try (Connection con = ConnectionManager.getConnection(); PreparedStatement pst = con.prepareStatement(sql);) {
+		try (Connection con = ConnectionManager.getConnection(); PreparedStatement pst = con.prepareStatement(SQL_GET_BY_ID);) {
 
 			pst.setInt(1, id);
 
@@ -91,18 +101,11 @@ public class PokemonDAO implements IDAO<Pokemon> {
 	
 	
 	public List<Pokemon> getByNombre( String nombre) {
-		
-		String sql = " SELECT p.id 'id_pokemon', p.nombre 'nombre_pokemon', h.nombre 'nombre_habilidad', h.id 'id_habilidad' "
-				+ " FROM pokemon p, pokemon_has_habilidades ph, habilidad h "
-				+ " WHERE p.id = ph.id_pokemon AND ph.id_habilidad = h.id AND p.nombre LIKE ? "
-				+ " ORDER BY p.id DESC LIMIT 500;";	
-
-		LOG.debug(sql);
-
+				
 		HashMap<Integer, Pokemon> hm = new HashMap<Integer, Pokemon>();
 		
 
-		try (Connection con = ConnectionManager.getConnection(); PreparedStatement pst = con.prepareStatement(sql);) {
+		try (Connection con = ConnectionManager.getConnection(); PreparedStatement pst = con.prepareStatement(SQL_GET_BY_NOMBRE);) {
 
 			pst.setString(1, "%" + nombre + "%");
 
@@ -123,9 +126,8 @@ public class PokemonDAO implements IDAO<Pokemon> {
 	@Override
 	public Pokemon delete(int id) throws Exception {
 		Pokemon p =  getById(id);
-		
-		String sql = "DELETE FROM pokemon WHERE id=?";
-		try(Connection con = ConnectionManager.getConnection();PreparedStatement pst = con.prepareStatement(sql);){
+				
+		try(Connection con = ConnectionManager.getConnection();PreparedStatement pst = con.prepareStatement(SQL_DELETE);){
 			pst.setInt(1, id);
 			LOG.debug(pst);
 			int affectedRows = pst.executeUpdate();
@@ -148,7 +150,11 @@ public class PokemonDAO implements IDAO<Pokemon> {
 
 	@Override
 	public Pokemon create(Pokemon pojo) throws Exception {
-		// TODO Auto-generated method stub
+		try(Connection con = ConnectionManager.getConnection();){
+			
+		}catch (Exception e) {
+			// TODO: handle exception
+		}
 		return null;
 	}
 	
@@ -161,6 +167,7 @@ public class PokemonDAO implements IDAO<Pokemon> {
 			p = new Pokemon();
 			p.setId(idPokemon);
 			p.setNombre(rs.getString("nombre_pokemon"));
+			p.setImagen(rs.getString("imagen"));
 		}
 
 		Habilidad h = new Habilidad();
