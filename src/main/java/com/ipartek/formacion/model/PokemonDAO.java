@@ -21,19 +21,19 @@ public class PokemonDAO implements IDAO<Pokemon> {
 	//Consultas
 	
 	//GETALL
-	private static final String SQL_GET_ALL = "SELECT p.id 'id_pokemon', p.nombre 'nombre_pokemon', p.imagen, h.nombre 'nombre_habilidad', h.id 'id_habilidad' FROM pokemon p, pokemon_has_habilidades ph, habilidad h WHERE p.id = ph.id_pokemon AND ph.id_habilidad = h.id  ORDER BY p.id DESC LIMIT 500;";
+	private static final String SQL_GET_ALL = "SELECT p.id 'id_pokemon', p.nombre 'nombre_pokemon', p.imagen, h.nombre 'nombre_habilidad', h.id 'id_habilidad' FROM pokemon p LEFT JOIN pokemon_has_habilidades ph ON p.id = ph.id_pokemon LEFT JOIN habilidad h ON ph.id_habilidad = h.id  ORDER BY p.id DESC LIMIT 500;";
 	
 	//GETBYID
-	private static final String SQL_GET_BY_ID = " SELECT p.id 'id_pokemon', p.nombre 'nombre_pokemon', h.nombre 'nombre_habilidad', h.id 'id_habilidad' FROM pokemon p, pokemon_has_habilidades ph, habilidad h  WHERE p.id = ph.id_pokemon AND ph.id_habilidad = h.id AND p.id = ?  ORDER BY p.id DESC LIMIT 500;";;
+	private static final String SQL_GET_BY_ID = " SELECT p.id 'id_pokemon', p.nombre 'nombre_pokemon', p.imagen, h.nombre 'nombre_habilidad', h.id 'id_habilidad' FROM pokemon p LEFT JOIN pokemon_has_habilidades ph ON p.id = ph.id_pokemon LEFT JOIN habilidad h  ON ph.id_habilidad = h.id WHERE p.id = ?  ORDER BY p.id DESC LIMIT 500;";
 	
 	//GETBYNOMBRE
 	private static final String SQL_GET_BY_NOMBRE = "SELECT p.id 'id_pokemon', p.nombre 'nombre_pokemon', h.nombre 'nombre_habilidad', h.id 'id_habilidad' FROM pokemon p, pokemon_has_habilidades ph, habilidad h  WHERE p.id = ph.id_pokemon AND ph.id_habilidad = h.id AND p.nombre LIKE ? ORDER BY p.id DESC LIMIT 500;";
 	
 	//CREATE
-	private static final String SQL_CREATE = "";
+	private static final String SQL_CREATE = "INSERT INTO pokemon ('nombre') VALUES (?);";
 	
 	//UPDATE
-	private static final String SQL_UPDATE = "";
+	private static final String SQL_UPDATE = "UPDATE `pokemon` SET `nombre`=? WHERE  `id`=?";
 	
 	//DELETE
 	private static final String SQL_DELETE = "DELETE FROM pokemon WHERE id=?";
@@ -144,18 +144,43 @@ public class PokemonDAO implements IDAO<Pokemon> {
 
 	@Override
 	public Pokemon update(int id, Pokemon pojo) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		try(Connection con = ConnectionManager.getConnection();){
+			PreparedStatement pst = con.prepareStatement(SQL_UPDATE);
+			//1.nombre
+			pst.setString(1, pojo.getNombre());
+			//2.id
+			pst.setInt(2, id);
+			
+			LOG.debug(pst);
+			int filasAfectadas = pst.executeUpdate();
+			if ( filasAfectadas >= 1 ) {
+				pojo.setId(id);
+			}else {
+				throw new Exception("No se ha encontrado ningún pokemon con el id " +id);
+			}
+		}
+		return pojo;
 	}
 
 	@Override
 	public Pokemon create(Pokemon pojo) throws Exception {
 		try(Connection con = ConnectionManager.getConnection();){
+			PreparedStatement pst = con.prepareStatement(SQL_CREATE);
+			pst.setString(1, pojo.getNombre());
+			LOG.debug(pst);
+			
+			int filasAfectadas = pst.executeUpdate();
+			if (filasAfectadas == 1) {
+				ResultSet rs = pst.getGeneratedKeys();
+				if (rs.next()) {
+					pojo.setId(rs.getInt(1));
+				}
+			}
 			
 		}catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
-		return null;
+		return pojo;
 	}
 	
 
