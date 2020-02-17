@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -165,7 +166,7 @@ public class PokemonDAO implements IDAO<Pokemon> {
 	@Override
 	public Pokemon create(Pokemon pojo) throws Exception {
 		try(Connection con = ConnectionManager.getConnection();){
-			PreparedStatement pst = con.prepareStatement(SQL_CREATE, 1);
+			PreparedStatement pst = con.prepareStatement(SQL_CREATE, Statement.RETURN_GENERATED_KEYS);
 			pst.setString(1, pojo.getNombre());
 			LOG.debug(pst);
 			
