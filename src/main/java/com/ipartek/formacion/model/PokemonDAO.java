@@ -30,7 +30,7 @@ public class PokemonDAO implements IDAO<Pokemon> {
 	private static final String SQL_GET_BY_NOMBRE = "SELECT p.id 'id_pokemon', p.nombre 'nombre_pokemon', h.nombre 'nombre_habilidad', h.id 'id_habilidad' FROM pokemon p, pokemon_has_habilidades ph, habilidad h  WHERE p.id = ph.id_pokemon AND ph.id_habilidad = h.id AND p.nombre LIKE ? ORDER BY p.id DESC LIMIT 500;";
 	
 	//CREATE
-	private static final String SQL_CREATE = "INSERT INTO pokemon ('nombre') VALUES (?);";
+	private static final String SQL_CREATE = "INSERT INTO `pokemon` (`nombre`) VALUES (?)";
 	
 	//UPDATE
 	private static final String SQL_UPDATE = "UPDATE `pokemon` SET `nombre`=? WHERE  `id`=?";
@@ -165,7 +165,7 @@ public class PokemonDAO implements IDAO<Pokemon> {
 	@Override
 	public Pokemon create(Pokemon pojo) throws Exception {
 		try(Connection con = ConnectionManager.getConnection();){
-			PreparedStatement pst = con.prepareStatement(SQL_CREATE);
+			PreparedStatement pst = con.prepareStatement(SQL_CREATE, 1);
 			pst.setString(1, pojo.getNombre());
 			LOG.debug(pst);
 			

@@ -1,5 +1,6 @@
-package com.ipartek.formacion.controller.controller;
+package com.ipartek.formacion.controller;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ public class PokemonController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOG = Logger.getLogger(PokemonController.class);
     private static PokemonDAO dao;   
+    private final int SC_OK = 200, SC_NOT_FOUND = 404, SC_NO_CONTENT = 204, SC_CREATED = 201  ;
  
   
 
@@ -55,8 +57,7 @@ public class PokemonController extends HttpServlet {
 
 		response.setContentType("application/json");
 		response.setCharacterEncoding("utf-8");
-		 response.setHeader("Access-Control-Allow-Origin", "*");
-	      response.setHeader("Access-Control-Allow-Methods", "GET,HEAD,POST,DELETE,PUT");
+		
 		super.service(request, response);
 		
 		
@@ -119,15 +120,81 @@ public class PokemonController extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		doGet(request, response);
-	}
+		Pokemon p = new Pokemon();
+		// convertir json del request body a Objeto
+		BufferedReader reader = request.getReader();               
+		Gson gson = new Gson();
+		p = gson.fromJson(reader, Pokemon.class);
+
+
+		
+		try {
+
+			p = dao.create(p);
+		} catch (Exception e) {
+			LOG.error("No se ha podido crear el Pokemon" + e.getMessage());
+		}
+		
+		int codigo = ( p.getId()!= 0 )? ("".equals(p.getNombre()) || p.getNombre() == null )? SC_NO_CONTENT : SC_NOT_FOUND : SC_CREATED; 
+		response.setStatus(codigo);
+		
+			try(PrintWriter out = response.getWriter();){
+				/**
+				 * Condicion para comprobar si el codigo de estado que devuelve es el correcto y en caso contrario
+				 * mandar un mensaje al usuario 
+				 */
+				if(codigo == SC_CREATED) {
+					Gson json = new Gson();
+					out.println(json.toJson(p));
+				}else {
+					String mensaje = "No se ha encontrado ningun Pokemon";
+					out.println(mensaje);
+				}
+				out.flush();
+			}//End IF
+		
+	}//DoPost END
+	
 
 	/**
 	 * @see HttpServlet#doPut(HttpServletRequest, HttpServletResponse)
 	 */
 	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
+		Pokemon p = new Pokemon();
+		String id = request.getPathInfo();
+		id = id.replace("/", "");
+		
+		// convertir json del request body a Objeto
+		BufferedReader reader = request.getReader();               
+		Gson gson = new Gson();
+		p = gson.fromJson(reader, Pokemon.class);
+
+
+		
+		try {
+
+			p = dao.update(Integer.parseInt(id), p);
+		} catch (Exception e) {
+			LOG.error("No se ha podido crear la resena " + e.getMessage());
+		}
+		
+		int codigo = ( Integer.parseInt(id) != 0 )? ("".equals(p.getNombre()) || p.getNombre() == null )? SC_NO_CONTENT : SC_NOT_FOUND : SC_OK; 
+		response.setStatus(codigo);
+		
+			try(PrintWriter out = response.getWriter();){
+				/**
+				 * Condicion para comprobar si el codigo de estado que devuelve es el correcto y en caso contrario
+				 * mandar un mensaje al usuario 
+				 */
+				if(codigo == SC_OK) {
+					Gson json = new Gson();
+					out.println(json.toJson(p));
+				}else {
+					String mensaje = "No se ha encontrado ningun Pokemon";
+					out.println(mensaje);
+				}
+				out.flush();
+			}
 	}
 
 	/**
