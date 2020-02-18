@@ -135,7 +135,7 @@ public class PokemonController extends HttpServlet {
 			LOG.error("No se ha podido crear el Pokemon" + e.getMessage());
 		}
 		
-		int codigo = ( p.getId()!= 0 )? ("".equals(p.getNombre()) || p.getNombre() == null )? SC_NO_CONTENT : SC_CREATED: SC_NOT_FOUND ; 
+		int codigo = ( p.getId()!= 0 )? ("".equals(p.getNombre()) || p.getNombre() == null )? SC_NO_CONTENT : SC_OK: SC_NOT_FOUND ; 
 		response.setStatus(codigo);
 		
 			try(PrintWriter out = response.getWriter();){
@@ -143,7 +143,7 @@ public class PokemonController extends HttpServlet {
 				 * Condicion para comprobar si el codigo de estado que devuelve es el correcto y en caso contrario
 				 * mandar un mensaje al usuario 
 				 */
-				if(codigo == SC_CREATED) {
+				if(codigo == SC_OK) {
 					Gson json = new Gson();
 					out.println(json.toJson(p));
 				}else {
@@ -175,10 +175,10 @@ public class PokemonController extends HttpServlet {
 
 			p = dao.update(Integer.parseInt(id), p);
 		} catch (Exception e) {
-			LOG.error("No se ha podido crear la resena " + e.getMessage());
+			LOG.error("No se ha podido actualizar el pokemon " + e.getMessage());
 		}
 		
-		int codigo = ( Integer.parseInt(id) != 0 )? ("".equals(p.getNombre()) || p.getNombre() == null )? SC_NO_CONTENT : SC_NOT_FOUND : SC_OK; 
+		int codigo = ( Integer.parseInt(id) != 0 )? ("".equals(p.getNombre()) || p.getNombre() == null )? SC_NO_CONTENT : SC_OK : SC_NOT_FOUND; 
 		response.setStatus(codigo);
 		
 			try(PrintWriter out = response.getWriter();){
