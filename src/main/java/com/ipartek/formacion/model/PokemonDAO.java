@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 
 import com.ipartek.formacion.model.pojo.Habilidad;
 import com.ipartek.formacion.model.pojo.Pokemon;
+import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 
 public class PokemonDAO implements IDAO<Pokemon> {
 
@@ -31,10 +32,10 @@ public class PokemonDAO implements IDAO<Pokemon> {
 	private static final String SQL_GET_BY_NOMBRE = "SELECT p.id 'id_pokemon', p.nombre 'nombre_pokemon', h.nombre 'nombre_habilidad', h.id 'id_habilidad' FROM pokemon p, pokemon_has_habilidades ph, habilidad h  WHERE p.id = ph.id_pokemon AND ph.id_habilidad = h.id AND p.nombre LIKE ? ORDER BY p.id DESC LIMIT 500;";
 	
 	//CREATE
-	private static final String SQL_CREATE = "INSERT INTO `pokemon` (`nombre`) VALUES (?)";
+	private static final String SQL_CREATE = "INSERT INTO `pokemon` (`nombre`,`imagen`) VALUES (?,?)";
 	
 	//UPDATE
-	private static final String SQL_UPDATE = "UPDATE `pokemon` SET `nombre`=? WHERE  `id`=?";
+	private static final String SQL_UPDATE = "UPDATE `pokemon` SET `nombre`=?,`imagen`=? WHERE  `id`=?";
 	
 	//DELETE
 	private static final String SQL_DELETE = "DELETE FROM pokemon WHERE id=?";
@@ -149,8 +150,10 @@ public class PokemonDAO implements IDAO<Pokemon> {
 			PreparedStatement pst = con.prepareStatement(SQL_UPDATE);
 			//1.nombre
 			pst.setString(1, pojo.getNombre());
+			//2.imagen
+			pst.setString(2, pojo.getImagen());
 			//2.id
-			pst.setInt(2, id);
+			pst.setInt(3, id);
 			
 			LOG.debug(pst);
 			int filasAfectadas = pst.executeUpdate();
@@ -168,6 +171,7 @@ public class PokemonDAO implements IDAO<Pokemon> {
 		try(Connection con = ConnectionManager.getConnection();){
 			PreparedStatement pst = con.prepareStatement(SQL_CREATE, Statement.RETURN_GENERATED_KEYS);
 			pst.setString(1, pojo.getNombre());
+			pst.setString(2, pojo.getImagen());
 			LOG.debug(pst);
 			
 			int filasAfectadas = pst.executeUpdate();
@@ -178,8 +182,12 @@ public class PokemonDAO implements IDAO<Pokemon> {
 				}
 			}
 			
-		}catch (Exception e) {
-			e.printStackTrace();
+		}catch (MySQLIntegrityConstraintViolationException e) {
+			LOG.error(e.getMessage());
+			throw new MySQLIntegrityConstraintViolationException();
+		}catch(Exception e) {
+			LOG.error(e.getMessage());
+			throw new Exception(e);
 		}
 		return pojo;
 	}
