@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `habilidad` (
   UNIQUE KEY `nombre` (`nombre`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Volcando datos para la tabla pokedex.habilidad: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla pokedex.habilidad: ~7 rows (aproximadamente)
 DELETE FROM `habilidad`;
 /*!40000 ALTER TABLE `habilidad` DISABLE KEYS */;
 INSERT INTO `habilidad` (`id`, `nombre`) VALUES
@@ -41,18 +41,26 @@ INSERT INTO `habilidad` (`id`, `nombre`) VALUES
 CREATE TABLE IF NOT EXISTS `pokemon` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `nombre` varchar(50) NOT NULL,
+  `imagen` varchar(800) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `nombre` (`nombre`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=58 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Volcando datos para la tabla pokedex.pokemon: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla pokedex.pokemon: ~11 rows (aproximadamente)
 DELETE FROM `pokemon`;
 /*!40000 ALTER TABLE `pokemon` DISABLE KEYS */;
-INSERT INTO `pokemon` (`id`, `nombre`) VALUES
-	(4, 'bulbasaur'),
-	(3, 'charmander'),
-	(1, 'lucario'),
-	(2, 'pikachu');
+INSERT INTO `pokemon` (`id`, `nombre`, `imagen`) VALUES
+	(1, 'lucario', 'https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/11ea81db-083a-4971-ba53-5e684fe179cd/dab4inf-8802e701-8bbf-4e6f-b7d2-98a42215dcad.png/v1/fill/w_369,h_367,q_80,strp/nick_the_lucario_meme_downloadable_base_by_unownace_dab4inf-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9MzY3IiwicGF0aCI6IlwvZlwvMTFlYTgxZGItMDgzYS00OTcxLWJhNTMtNWU2ODRmZTE3OWNkXC9kYWI0aW5mLTg4MDJlNzAxLThiYmYtNGU2Zi1iN2QyLTk4YTQyMjE1ZGNhZC5wbmciLCJ3aWR0aCI6Ijw9MzY5In1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.rk154x3eHfHRdTeZXXft82pwvnOv5V2JFfvOQPuwITo'),
+	(2, 'pikachu', 'https://pics.me.me/pikachu-in-gulag-1930-colorized-insert-dead-pikachu-meme-here-42787528.png'),
+	(3, 'charmander', 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/004.png'),
+	(4, 'bulbasaur', 'https://i3.kym-cdn.com/photos/images/newsfeed/000/006/464/1.Bulbasaur.png'),
+	(8, 'pidgeot', 'https://cdn.memegenerator.es/imagenes/memes/full/4/98/4986840.jpg'),
+	(9, 'charizard', 'https://pm1.narvii.com/6315/840550f925ad1444e2d38d1cd05638f9da3f3c23_hq.jpg'),
+	(10, 'squirtle', 'https://pm1.narvii.com/6770/cabbd48cdabe20fa2cfcd8cdd141baac7ad1e891v2_hq.jpg'),
+	(17, 'charmeleon', 'https://images.wikidexcdn.net/mwuploads/wikidex/f/fb/latest/20190805232138/Charmeleon.png'),
+	(31, 'diglett', 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/050.png'),
+	(53, 'riolu', 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/447.png'),
+	(54, 'Wartortle', 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/080.png');
 /*!40000 ALTER TABLE `pokemon` ENABLE KEYS */;
 
 -- Volcando estructura para tabla pokedex.pokemon_has_habilidades
@@ -61,13 +69,14 @@ CREATE TABLE IF NOT EXISTS `pokemon_has_habilidades` (
   `id_pokemon` int(11) NOT NULL,
   `id_habilidad` int(11) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `fk_pokemon` (`id_pokemon`),
+  UNIQUE KEY `id_pokemon` (`id_pokemon`,`id_habilidad`),
   KEY `fk_habilidad` (`id_habilidad`),
+  KEY `fk_pokemon` (`id_pokemon`),
   CONSTRAINT `fk_habilidad` FOREIGN KEY (`id_habilidad`) REFERENCES `habilidad` (`id`),
-  CONSTRAINT `fk_pokemon` FOREIGN KEY (`id_pokemon`) REFERENCES `pokemon` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `fk_pokemon` FOREIGN KEY (`id_pokemon`) REFERENCES `pokemon` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Volcando datos para la tabla pokedex.pokemon_has_habilidades: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla pokedex.pokemon_has_habilidades: ~14 rows (aproximadamente)
 DELETE FROM `pokemon_has_habilidades`;
 /*!40000 ALTER TABLE `pokemon_has_habilidades` DISABLE KEYS */;
 INSERT INTO `pokemon_has_habilidades` (`id`, `id_pokemon`, `id_habilidad`) VALUES
@@ -76,11 +85,15 @@ INSERT INTO `pokemon_has_habilidades` (`id`, `id_pokemon`, `id_habilidad`) VALUE
 	(3, 1, 3),
 	(4, 2, 4),
 	(5, 2, 5),
-	(6, 3, 6),
-	(7, 3, 3),
 	(8, 3, 1),
+	(7, 3, 3),
+	(6, 3, 6),
+	(10, 4, 1),
 	(9, 4, 7),
-	(10, 4, 1);
+	(26, 17, 2),
+	(11, 17, 6),
+	(29, 54, 3),
+	(28, 54, 4);
 /*!40000 ALTER TABLE `pokemon_has_habilidades` ENABLE KEYS */;
 
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

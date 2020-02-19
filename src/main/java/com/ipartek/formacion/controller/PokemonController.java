@@ -128,13 +128,11 @@ public class PokemonController extends HttpServlet {
 		BufferedReader reader = request.getReader();               
 		Gson gson = new Gson();
 		p = gson.fromJson(reader, Pokemon.class);
-		
-		
-		
+				
 		try {
 			
 			p = dao.create(p);
-			codigo = ( p.getId()!= 0 )? ("".equals(p.getNombre()) || p.getNombre() == null )? SC_NO_CONTENT : SC_OK: SC_NOT_FOUND ; 
+			codigo = ( p.getId()!= 0 )? ("".equals(p.getNombre()) || p.getNombre() == null )? SC_NO_CONTENT : SC_CREATED: SC_NOT_FOUND ; 
 			response.setStatus(codigo);
 		} catch (MySQLIntegrityConstraintViolationException e) {
 			LOG.error("No se ha podido crear el Pokemon" + e.getMessage());
@@ -152,7 +150,7 @@ public class PokemonController extends HttpServlet {
 			 * Condicion para comprobar si el codigo de estado que devuelve es el correcto y en caso contrario
 			 * mandar un mensaje al usuario 
 			 */
-			if(codigo == SC_OK) {
+			if(codigo == SC_CREATED) {
 				Gson json = new Gson();
 				out.println(json.toJson(p));
 			}else {

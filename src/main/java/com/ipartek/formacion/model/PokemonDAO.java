@@ -40,6 +40,9 @@ public class PokemonDAO implements IDAO<Pokemon> {
 	//DELETE
 	private static final String SQL_DELETE = "DELETE FROM pokemon WHERE id=?";
 	
+	//INSERTAR HABILIDAD EN TABLA INTERMEDIA
+	private static final String SQL_INSERT_POKEMON_HAS_HABILIDADES = "INSERT INTO `pokedex`.`pokemon_has_habilidades` (`id_pokemon`, `id_habilidad`) VALUES (?, ?);";
+	
 	
 
 	private PokemonDAO() {
@@ -168,7 +171,16 @@ public class PokemonDAO implements IDAO<Pokemon> {
 
 	@Override
 	public Pokemon create(Pokemon pojo) throws Exception {
-		try(Connection con = ConnectionManager.getConnection();){
+		Connection con = null;
+							
+		//Obtenemos las habilidades del pokemon
+		ArrayList <Habilidad> habilidades = (ArrayList<Habilidad>) pojo.getHabilidades();
+		
+		try{
+			con = ConnectionManager.getConnection();
+			//No comita en la base de datos las consultas hasta que se haga un commit (No guarda automaticamente los cambios)
+			con.setAutoCommit(true);
+			
 			PreparedStatement pst = con.prepareStatement(SQL_CREATE, Statement.RETURN_GENERATED_KEYS);
 			pst.setString(1, pojo.getNombre());
 			pst.setString(2, pojo.getImagen());
@@ -179,15 +191,53 @@ public class PokemonDAO implements IDAO<Pokemon> {
 				ResultSet rs = pst.getGeneratedKeys();
 				if (rs.next()) {
 					pojo.setId(rs.getInt(1));
+					
+					PreparedStatement pstHab = null;
+					//Cogemos las habilidades
+					for (Habilidad h : habilidades) {
+						pstHab = con.prepareStatement(SQL_INSERT_POKEMON_HAS_HABILIDADES);
+						pstHab.setInt(1, pojo.getId());
+						pstHab.setInt(2, h.getId());
+						
+						LOG.debug(pstHab);
+						
+						pstHab.executeUpdate();
+						
+						
+					}
+					pstHab.close();
+					con.commit();
+										
 				}
+				
 			}
 			
 		}catch (MySQLIntegrityConstraintViolationException e) {
 			LOG.error(e.getMessage());
-			throw new MySQLIntegrityConstraintViolationException();
+			//Restablece los cambios
+			con.rollback();
+			if(e.getMessage().contains("Duplicate")) {
+				throw new MySQLIntegrityConstraintViolationException("El nombre ya existe");
+			}else {
+				throw new MySQLIntegrityConstraintViolationException("Has introducido alguna habilidad que no existe.");
+			}
+			
+			
+	
+			
+			
 		}catch(Exception e) {
 			LOG.error(e.getMessage());
+			//Restablece los cambios
+			con.rollback();
 			throw new Exception(e);
+			
+		}finally {
+			//Cerramos la conexión si no es nula
+			
+			if(con!=null) {
+				con.close();
+			}
 		}
 		return pojo;
 	}
