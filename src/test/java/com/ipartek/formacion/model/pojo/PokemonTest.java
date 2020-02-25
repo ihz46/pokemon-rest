@@ -1,35 +1,74 @@
 package com.ipartek.formacion.model.pojo;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
-import java.util.ArrayList;
+
 
 import org.junit.Test;
 
 public class PokemonTest {
 
-	
-	
 	@Test
-	public  void testConstructor() {
+	public void testPokemon() {
 		Pokemon p = new Pokemon();
-		
-		//Comprobamos que el pokemon no sea null
 		assertNotNull(p);
 		
-		//Comprobamos que el nombre por defecto sea vacío
-		assertEquals("", p.getNombre());
-		
-		//Comprobamos que el id por defecto sea 0
 		assertEquals(0, p.getId());
 		
-		//Comprobamos que la imagen por defecto sea vacía
+		assertEquals("", p.getNombre());
+		
 		assertEquals("", p.getImagen());
 		
-		//Comprobamos que el pokemon tenga un array vacío de habilidades		
-		assertEquals( new ArrayList<Habilidad>(), p.getHabilidades());
+		assertNotNull(p.getHabilidades());
 		
+		assertTrue(p.getHabilidades().isEmpty());
+	}
+	
+	/*
+
+	@Test
+	public void testGetId() {
+		fail("Not yet implemented");
 	}
 
+	@Test
+	public void testSetId() {
+		fail("Not yet implemented");
+	}
+
+	@Test
+	public void testGetNombre() {
+		fail("Not yet implemented");
+	}
+
+	@Test
+	public void testSetNombre() {
+		fail("Not yet implemented");
+	}
+
+	@Test
+	public void testGetHabilidades() {
+		fail("Not yet implemented");
+	}
+
+	@Test
+	public void testSetHabilidades() {
+		fail("Not yet implemented");
+	}
+
+	@Test
+	public void testToString() {
+		fail("Not yet implemented");
+	}
+
+	@Test
+	public void testGetImagen() {
+		fail("Not yet implemented");
+	}
+
+	@Test
+	public void testSetImagen() {
+		fail("Not yet implemented");
+	}
+	*/
 }

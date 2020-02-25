@@ -17,6 +17,13 @@
 		<javax.servlet.api>3.0.1</javax.servlet.api>
 		<javax.servlet.jsp.version>2.2</javax.servlet.jsp.version>
 		<javax.servlet.jstl.version>1.2</javax.servlet.jstl.version>
+		
+		<!-- Sonarcloud properties -->
+	  <sonar.projectKey>ihz46_pokemon-rest</sonar.projectKey>
+	  <sonar.organization>ihz46</sonar.organization>
+	  <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+	  <sonar.login>50d18498814dedc639d4cf12cec32a0d2c56559c</sonar.login>
+
 	</properties>
 
 	<!-- librerias que vamos a usar u otros proyectos maven -->
