@@ -217,12 +217,19 @@ public class PokemonDAO implements IDAO<Pokemon> {
 			
 			//Cerramos los prepared statement
 			
-			pstAddHabilidades.close();
 			
-			pst.close();
+			if(pst!=null) {
+				pst.close();
+			}
 			
-			pstAddHabilidades.close();
+			if(pstEliminarHabilidades!=null) {
+				pstAddHabilidades.close();
+			}
 			
+			if(pstAddHabilidades!=null) {
+				pstAddHabilidades.close();
+			}
+				
 			//Cerramos la conexión si no es nula
 			
 			if(con!=null) {
