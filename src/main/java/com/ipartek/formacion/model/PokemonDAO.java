@@ -152,6 +152,12 @@ public class PokemonDAO implements IDAO<Pokemon> {
 	public Pokemon update(int id, Pokemon pojo) throws Exception {
 		Connection con = null;
 		
+		PreparedStatement pst = null;
+		
+		PreparedStatement  pstEliminarHabilidades = null;
+		
+		PreparedStatement pstAddHabilidades = null;
+		
 		//Obtenemos las habilidades del pokemon 
 		ArrayList<Habilidad> habilidades = (ArrayList<Habilidad>) pojo.getHabilidades();
 		
@@ -162,7 +168,7 @@ public class PokemonDAO implements IDAO<Pokemon> {
 			con.setAutoCommit(false);
 			
 			//Actualizamos los datos del pokemon 
-			PreparedStatement pst = con.prepareStatement(SQL_UPDATE);
+		    pst = con.prepareStatement(SQL_UPDATE);
 			
 			pst.setString(1, pojo.getNombre());
 			pst.setString(2, pojo.getImagen());
@@ -177,24 +183,23 @@ public class PokemonDAO implements IDAO<Pokemon> {
 			
 			//En caso de que se realice correctamente la update, continuamos con las demás transacciones.
 			if (filasAfectadas == 1) {
-				PreparedStatement pstEliminarHabilidades = con.prepareStatement(SQL_DELETE_POKEMON_HAS_HABILIDADES);
+				 pstEliminarHabilidades = con.prepareStatement(SQL_DELETE_POKEMON_HAS_HABILIDADES);
 				
 				//Recorremos las habilidades para eliminarlas de la tabla pokemon_has_habilidades
 				pstEliminarHabilidades.setInt(1, pojo.getId());
 				
 				int affectedRows = pstEliminarHabilidades.executeUpdate();
-				pstEliminarHabilidades.close();
-				
+								
 				if(affectedRows>0) {
 					//Ahora tenemos que insertar en la tabla por cada habilidad
-					PreparedStatement pstAddHabilidades = con.prepareStatement(SQL_INSERT_POKEMON_HAS_HABILIDADES);
+					 pstAddHabilidades = con.prepareStatement(SQL_INSERT_POKEMON_HAS_HABILIDADES);
 					for (Habilidad habilidad : habilidades) {
 						pstAddHabilidades.setInt(1, pojo.getId());
 						pstAddHabilidades.setInt(2, habilidad.getId());
 						LOG.debug(pstAddHabilidades);
 						pstAddHabilidades.executeUpdate();
 					}
-					pstAddHabilidades.close();
+				
 				}
 				
 				con.commit();
@@ -209,6 +214,15 @@ public class PokemonDAO implements IDAO<Pokemon> {
 		}catch (Exception e) {
 			throw new Exception(e);
 		}finally {
+			
+			//Cerramos los prepared statement
+			
+			pstAddHabilidades.close();
+			
+			pst.close();
+			
+			pstAddHabilidades.close();
+			
 			//Cerramos la conexión si no es nula
 			
 			if(con!=null) {
@@ -273,10 +287,7 @@ public class PokemonDAO implements IDAO<Pokemon> {
 				throw new MySQLIntegrityConstraintViolationException("Has introducido alguna habilidad que no existe.");
 			}
 			
-			
-	
-			
-			
+						
 		}catch(Exception e) {
 			LOG.error(e.getMessage());
 			//Restablece los cambios
