@@ -1,10 +1,8 @@
 package com.ipartek.formacion.model;
 
-import java.security.interfaces.RSAKey;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -163,49 +161,50 @@ public class PokemonDAO implements IDAO<Pokemon> {
 			con.setAutoCommit(false);
 			
 			//Actualizamos los datos del pokemon 
-		    PreparedStatement pst = con.prepareStatement(SQL_UPDATE);
-			
-			pst.setString(1, pojo.getNombre());
-			pst.setString(2, pojo.getImagen());
-			pst.setInt(3, pojo.getId());
-			
-			LOG.debug(pst);
-			
-			int filasAfectadas = pst.executeUpdate();
-			
-			//Cerramos el statement
-			pst.close();
-			
-			//En caso de que se realice correctamente la update, continuamos con las demás transacciones.
-			if (filasAfectadas == 1) {
-				 try(PreparedStatement pstEliminarHabilidades = con.prepareStatement(SQL_DELETE_POKEMON_HAS_HABILIDADES)){
-						//Recorremos las habilidades para eliminarlas de la tabla pokemon_has_habilidades
-						pstEliminarHabilidades.setInt(1, pojo.getId());
-						
-						int affectedRows = pstEliminarHabilidades.executeUpdate();
-										
-						if(affectedRows>0) {
-							//Ahora tenemos que insertar en la tabla por cada habilidad
-							try(PreparedStatement pstAddHabilidades = con.prepareStatement(SQL_INSERT_POKEMON_HAS_HABILIDADES)){
-								
-									for (Habilidad habilidad : habilidades) {
-									pstAddHabilidades.setInt(1, pojo.getId());
-									pstAddHabilidades.setInt(2, habilidad.getId());
-									LOG.debug(pstAddHabilidades);
-									pstAddHabilidades.executeUpdate();
-								}
-							}
-						
-						}//Fin if affectedrows>0
-						
-						con.commit();
-				 };
+		   try( PreparedStatement pst = con.prepareStatement(SQL_UPDATE)){
+			   pst.setString(1, pojo.getNombre());
+				pst.setString(2, pojo.getImagen());
+				pst.setInt(3, pojo.getId());
 				
-			
-			}//Acaba el IF de filas afectadas
-			
+				LOG.debug(pst);
+				
+				int filasAfectadas = pst.executeUpdate();
+				
+				//En caso de que se realice correctamente la update, continuamos con las demás transacciones.
+				if (filasAfectadas == 1) {
+					 try(PreparedStatement pstEliminarHabilidades = con.prepareStatement(SQL_DELETE_POKEMON_HAS_HABILIDADES)){
+							//Recorremos las habilidades para eliminarlas de la tabla pokemon_has_habilidades
+							pstEliminarHabilidades.setInt(1, pojo.getId());
+							
+							int affectedRows = pstEliminarHabilidades.executeUpdate();
+											
+							if(affectedRows>0) {
+								//Ahora tenemos que insertar en la tabla por cada habilidad
+								try(PreparedStatement pstAddHabilidades = con.prepareStatement(SQL_INSERT_POKEMON_HAS_HABILIDADES)){
+									
+										for (Habilidad habilidad : habilidades) {
+										pstAddHabilidades.setInt(1, pojo.getId());
+										pstAddHabilidades.setInt(2, habilidad.getId());
+										LOG.debug(pstAddHabilidades);
+										pstAddHabilidades.executeUpdate();
+									}
+								}
+							
+							}//Fin if affectedrows>0
+							
+							con.commit();
+					 };
+					
+				
+				}//Acaba el IF de filas afectadas
+				
+		   };
+						
 		}catch (MySQLIntegrityConstraintViolationException e) {
-			con.rollback();
+			if(con!=null) {
+				con.rollback();
+			}
+			
 			if(e.getMessage().contains("Duplicate")) {
 				throw new MySQLIntegrityConstraintViolationException("El nombre ya existe");
 			}else {
@@ -277,7 +276,10 @@ public class PokemonDAO implements IDAO<Pokemon> {
 		}catch (MySQLIntegrityConstraintViolationException e) {
 			LOG.error(e.getMessage());
 			//Restablece los cambios
-			con.rollback();
+			if(con!=null) {
+				con.rollback();
+			}
+			
 			if(e.getMessage().contains("Duplicate")) {
 				throw new MySQLIntegrityConstraintViolationException("El nombre ya existe");
 			}else {
@@ -288,7 +290,10 @@ public class PokemonDAO implements IDAO<Pokemon> {
 		}catch(Exception e) {
 			LOG.error(e.getMessage());
 			//Restablece los cambios
-			con.rollback();
+			if(con!=null) {
+				con.rollback();
+			}
+		
 			throw new Exception(e);
 			
 		}finally {

@@ -7,7 +7,7 @@
 		maxWait="10000" 
 		name="jdbc/mydb"	 
 		type="javax.sql.DataSource"
-		url="jdbc:mysql://localhost:3307/pokedex" 
+		url="jdbc:mysql://192.168.0.50:3306/pokedex-inigo" 
 		username="root"
 		password="root" 
 		/>
