@@ -1,5 +1,6 @@
 package com.ipartek.formacion.model;
 
+import java.security.interfaces.RSAKey;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -152,12 +153,6 @@ public class PokemonDAO implements IDAO<Pokemon> {
 	public Pokemon update(int id, Pokemon pojo) throws Exception {
 		Connection con = null;
 		
-		PreparedStatement pst = null;
-		
-		PreparedStatement  pstEliminarHabilidades = null;
-		
-		PreparedStatement pstAddHabilidades = null;
-		
 		//Obtenemos las habilidades del pokemon 
 		ArrayList<Habilidad> habilidades = (ArrayList<Habilidad>) pojo.getHabilidades();
 		
@@ -168,7 +163,7 @@ public class PokemonDAO implements IDAO<Pokemon> {
 			con.setAutoCommit(false);
 			
 			//Actualizamos los datos del pokemon 
-		    pst = con.prepareStatement(SQL_UPDATE);
+		    PreparedStatement pst = con.prepareStatement(SQL_UPDATE);
 			
 			pst.setString(1, pojo.getNombre());
 			pst.setString(2, pojo.getImagen());
@@ -183,27 +178,32 @@ public class PokemonDAO implements IDAO<Pokemon> {
 			
 			//En caso de que se realice correctamente la update, continuamos con las demás transacciones.
 			if (filasAfectadas == 1) {
-				 pstEliminarHabilidades = con.prepareStatement(SQL_DELETE_POKEMON_HAS_HABILIDADES);
-				
-				//Recorremos las habilidades para eliminarlas de la tabla pokemon_has_habilidades
-				pstEliminarHabilidades.setInt(1, pojo.getId());
-				
-				int affectedRows = pstEliminarHabilidades.executeUpdate();
+				 try(PreparedStatement pstEliminarHabilidades = con.prepareStatement(SQL_DELETE_POKEMON_HAS_HABILIDADES)){
+						//Recorremos las habilidades para eliminarlas de la tabla pokemon_has_habilidades
+						pstEliminarHabilidades.setInt(1, pojo.getId());
+						
+						int affectedRows = pstEliminarHabilidades.executeUpdate();
+										
+						if(affectedRows>0) {
+							//Ahora tenemos que insertar en la tabla por cada habilidad
+							try(PreparedStatement pstAddHabilidades = con.prepareStatement(SQL_INSERT_POKEMON_HAS_HABILIDADES)){
 								
-				if(affectedRows>0) {
-					//Ahora tenemos que insertar en la tabla por cada habilidad
-					 pstAddHabilidades = con.prepareStatement(SQL_INSERT_POKEMON_HAS_HABILIDADES);
-					for (Habilidad habilidad : habilidades) {
-						pstAddHabilidades.setInt(1, pojo.getId());
-						pstAddHabilidades.setInt(2, habilidad.getId());
-						LOG.debug(pstAddHabilidades);
-						pstAddHabilidades.executeUpdate();
-					}
+									for (Habilidad habilidad : habilidades) {
+									pstAddHabilidades.setInt(1, pojo.getId());
+									pstAddHabilidades.setInt(2, habilidad.getId());
+									LOG.debug(pstAddHabilidades);
+									pstAddHabilidades.executeUpdate();
+								}
+							}
+						
+						}//Fin if affectedrows>0
+						
+						con.commit();
+				 };
 				
-				}
-				
-				con.commit();
-			}
+			
+			}//Acaba el IF de filas afectadas
+			
 		}catch (MySQLIntegrityConstraintViolationException e) {
 			con.rollback();
 			if(e.getMessage().contains("Duplicate")) {
@@ -215,21 +215,6 @@ public class PokemonDAO implements IDAO<Pokemon> {
 			throw new Exception(e);
 		}finally {
 			
-			//Cerramos los prepared statement
-			
-			
-			if(pst!=null) {
-				pst.close();
-			}
-			
-			if(pstEliminarHabilidades!=null) {
-				pstAddHabilidades.close();
-			}
-			
-			if(pstAddHabilidades!=null) {
-				pstAddHabilidades.close();
-			}
-				
 			//Cerramos la conexión si no es nula
 			
 			if(con!=null) {
@@ -244,7 +229,9 @@ public class PokemonDAO implements IDAO<Pokemon> {
 	@Override
 	public Pokemon create(Pokemon pojo) throws Exception {
 		Connection con = null;
-							
+										
+		ResultSet rs = null;
+		
 		//Obtenemos las habilidades del pokemon
 		ArrayList <Habilidad> habilidades = (ArrayList<Habilidad>) pojo.getHabilidades();
 		
@@ -253,36 +240,39 @@ public class PokemonDAO implements IDAO<Pokemon> {
 			//No comita en la base de datos las consultas hasta que se haga un commit (No guarda automaticamente los cambios)
 			con.setAutoCommit(false);
 			
-			PreparedStatement pst = con.prepareStatement(SQL_CREATE, Statement.RETURN_GENERATED_KEYS);
-			pst.setString(1, pojo.getNombre());
-			pst.setString(2, pojo.getImagen());
-			LOG.debug(pst);
 			
-			int filasAfectadas = pst.executeUpdate();
-			if (filasAfectadas == 1) {
-				ResultSet rs = pst.getGeneratedKeys();
-				if (rs.next()) {
-					pojo.setId(rs.getInt(1));
-					
-					PreparedStatement pstHab = null;
-					//Cogemos las habilidades
-					for (Habilidad h : habilidades) {
-						pstHab = con.prepareStatement(SQL_INSERT_POKEMON_HAS_HABILIDADES);
-						pstHab.setInt(1, pojo.getId());
-						pstHab.setInt(2, h.getId());
-						
-						LOG.debug(pstHab);
-						
-						pstHab.executeUpdate();
-						
-						
-					}
-					pstHab.close();
-					con.commit();
-										
-				}
+			
+			try(PreparedStatement pst = con.prepareStatement(SQL_CREATE, Statement.RETURN_GENERATED_KEYS)){
+				pst.setString(1, pojo.getNombre());
+				pst.setString(2, pojo.getImagen());
+				LOG.debug(pst);
 				
-			}
+				int filasAfectadas = pst.executeUpdate();
+				if (filasAfectadas == 1) {
+					 rs = pst.getGeneratedKeys();
+					if (rs.next()) {
+						pojo.setId(rs.getInt(1));
+											
+						//Cogemos las habilidades
+						for (Habilidad h : habilidades) {
+							try(PreparedStatement pstHab = con.prepareStatement(SQL_INSERT_POKEMON_HAS_HABILIDADES)){
+								pstHab.setInt(1, pojo.getId());
+								pstHab.setInt(2, h.getId());
+								
+								LOG.debug(pstHab);
+								
+								pstHab.executeUpdate();
+								
+							};						
+							
+						}
+										
+						con.commit();
+											
+					}
+					
+				}
+			}	//Cierra pst
 			
 		}catch (MySQLIntegrityConstraintViolationException e) {
 			LOG.error(e.getMessage());
@@ -302,8 +292,11 @@ public class PokemonDAO implements IDAO<Pokemon> {
 			throw new Exception(e);
 			
 		}finally {
-			//Cerramos la conexión si no es nula
 			
+			if(rs!=null) {
+				rs.close();
+			}
+					
 			if(con!=null) {
 				con.close();
 			}
