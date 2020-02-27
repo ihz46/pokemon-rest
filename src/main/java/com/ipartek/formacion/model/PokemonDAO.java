@@ -71,7 +71,7 @@ public class PokemonDAO implements IDAO<Pokemon> {
 			}
 
 		} catch (Exception e) {
-			// TODO: LOG
+			LOG.error(e.getMessage());
 			e.printStackTrace();
 		}
 
